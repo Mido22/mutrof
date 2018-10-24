@@ -1,19 +1,140 @@
 'use strict';
 
-import {DIRECTIONS} from './utils.js'
+import {DIRECTIONS, ELEVATOR_REQUEST_STATES} from './utils.js'
 
 /**
  * Elevator class
  *
  */
 export default class Elevator {
-  constructor({id, floors, floor = 0}) {
+  constructor({ id, floors, floor = 0, direction = DIRECTIONS.NONE, request}) {
     this.id = id
-    this.direction = DIRECTIONS.NONE
+    this.direction = direction
+    this.floors = floors  // Total number of floors in the building
     this.floor = floor
+    this.request = request  // ElevatorRequest object if it exists
   }
 
+  /**
+   * Create a new elevator object with the same state
+   */
+  clone() {
+    return new Elevator({
+      id: this.id,
+      direction: this.direction,
+      floors: this.floors,
+      floor: this.floor,
+      request: this.request && this.request.clone(),
+    })
+  }
 
+  /**
+   * Move one level (if needed) and update elevator direction
+   */
+  move() {
+
+    // If elevator is responding to elevator request event
+    if (this.request) {
+      switch (this.request.getState()) {
+        case ELEVATOR_REQUEST_STATES.WAITING_FOR_ELEVATOR:
+          throw new Error('Invalid request state')
+        case ELEVATOR_REQUEST_STATES.ELEVATOR_ASSIGNED:
+          if (this.floor === this.addressedFloor) {
+            // Change state is elevator has reached requested floor
+            this.direction = this.request.getDirection()
+            this.request.setState(ELEVATOR_REQUEST_STATES.DOOR_OPEN)
+          } else {
+            // Move elevator closer to requested floor
+            moveOneFloor.call(this)
+          }
+          return
+        case ELEVATOR_REQUEST_STATES.DOOR_OPEN:
+          if (this.floor === this.addressedFloor) {
+            // User has not entered a destination, close the door
+            this.request.setState(ELEVATOR_REQUEST_STATES.DOOR_CLOSE)
+          } else {
+            // User has entered a destination, move to given floor
+            this.request = null  // clear the request
+            moveOneFloor.call(this)
+          }
+          return
+        case ELEVATOR_REQUEST_STATES.DOOR_CLOSE:
+          this.request = null  // clear the request
+      }
+    }
+
+    moveOneFloor.call(this)
+  }
+
+  // set elevator request event
+  setRequest(request) {
+    if (this.isBusy())
+      throw new Error('Sorry, the elevator is busy')
+
+    if (!this.isValidFloor(request.getFloor())) 
+      throw new Error('Invalid floor')
+
+    this.request = request
+    this.addressedFloor = request.getFloor()
+    request.setState(ELEVATOR_REQUEST_STATES.ELEVATOR_ASSIGNED)
+    switch (1) {
+      case this.floor > request.getFloor():
+        this.direction = DIRECTIONS.DOWN
+        break
+      case this.floor < request.getFloor():
+        this.direction = DIRECTIONS.DOWN
+        break
+      default:
+        this.direction = DIRECTIONS.NONE
+    }
+  }
+
+  // return clone of ElevatorRequest object
+  getRequest() {
+    if (!this.request) 
+      throw new Error('This elevator is free')
+    return this.request.clone()
+  }
+
+  /**
+   * Check if the elevator is occupied at the moment.
+   *
+   * @returns {boolean} true if busy.
+   */
+  isBusy() {
+    return !!this.request || this.direction !== DIRECTIONS.NONE
+  }
+
+  /**
+   * Command to move the elevator to the given floor.
+   *
+   * @param {int} toFloor where to go.
+   * @returns {undefined}
+   */
+  moveElevator(toFloor) {
+    if (!this.isValidFloor(toFloor) || this.floor === toFloor) throw new Error('Invalid floor')
+
+    const state = this.request && this.request.getState()
+    if (state === ELEVATOR_REQUEST_STATES.ELEVATOR_ASSIGNED)
+      throw new Error('Cannot move now')
+
+    switch (this.direction) {
+      case DIRECTIONS.UP:
+        if (this.addressedFloor < toFloor) this.addressedFloor = toFloor
+        break;
+      case DIRECTIONS.UP:
+        if (this.addressedFloor < toFloor) this.addressedFloor = toFloor
+        break;
+      default:
+        this.addressedFloor = toFloor
+        setDirection.call(this)
+    }
+  }
+
+  // Check if floor is valid
+  isValidFloor(floor) {
+    return floor >= 0 && floor < this.floors
+  }
 
   /**
    * Tells which direction is the elevator going in.
@@ -43,22 +164,12 @@ export default class Elevator {
   }
 
   /**
-   * Command to move the elevator to the given floor.
-   *
-   * @param {int} toFloor where to go.
-   * @returns {undefined}
-   */
-  moveElevator(toFloor) {
-    
-  }
-
-  /**
    * Check if the elevator is occupied at the moment.
    *
    * @returns {boolean} true if busy.
    */
   isBusy() {
-    return this.direction !== DIRECTIONS.NONE
+    return !!this.request
   }
 
   /**
@@ -69,13 +180,23 @@ export default class Elevator {
   currentFloor() {
     return this.floor
   }
+}
 
-  /**
-   * Reports which floor the elevator is at right now.
-   *
-   * @returns {int} actual floor at the moment.
-   */
-  currentFloor() {
-    return this.floor
-  }
+// Move elevator to requested floor
+function moveOneFloor() {
+  if (this.floor < this.addressedFloor)
+    this.floor++
+  else if (this.floor > this.addressedFloor)
+    this.floor--
+  setDirection.call(this)
+}
+
+// Set elevator direction
+function setDirection() {
+  if (this.floor < this.addressedFloor)
+    this.direction = DIRECTIONS.UP
+  else if (this.floor > this.addressedFloor)
+    this.direction = DIRECTIONS.DOWN
+  else
+    this.direction = DIRECTIONS.NONE
 }
