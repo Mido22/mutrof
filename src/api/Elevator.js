@@ -91,9 +91,7 @@ export default class Elevator {
 
   // return clone of ElevatorRequest object
   getRequest() {
-    if (!this.request) 
-      throw new Error('This elevator is free')
-    return this.request.clone()
+    return this.request && this.request.clone()
   }
 
   /**
