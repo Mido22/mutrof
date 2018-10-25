@@ -5,6 +5,7 @@
   "dependencies": {
     "dotenv": "^5.0.1",
     "dotenv-expand": "^4.2.0",
+    "rc-input-number": "^4.3.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-hot-loader": "^3.1.3",
