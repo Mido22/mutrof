@@ -18,7 +18,7 @@ export default class ElevatorController {
     this.requestQueue = requestQueue
     // Create elevator objects and add it to list
     for (let i = 0; i < this.elevatorCount; i++) {
-      const elevator = new Elevator(i, this.floors)
+      const elevator = new Elevator({id: i, floors: this.floors})
       this.elevatorList.push(elevator)
     }
     formRequestTree.call(this)
