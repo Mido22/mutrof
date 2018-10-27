@@ -1,0 +1,12 @@
+html, body {
+  color: #fff;
+  background-color: #252839;
+}
+
+.building-settings {
+  margin: 20px auto;
+}
+
+.setting-input {
+  width: 65px;
+}

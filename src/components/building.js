@@ -2,9 +2,10 @@ import React, { Component } from 'react'
 import 'rc-input-number/assets/index.css'
 import InputNumber from 'rc-input-number'
 import { 
-  Header, Icon, Segment, Container, Grid, Divider,
-  Label,
+  Header, Icon, Container, Grid, Label,
  } from 'semantic-ui-react'
+
+import '../css/building.css'
 import ElevatorController from './../api/elevatorController.js'
 
 const DEFAULT_FLOOR_COUNT = 10
@@ -20,108 +21,79 @@ export default class Building extends Component {
   }
 
   render() {
+    const { floors, elevatorCount, elevatorList } = this.state.controller
+
     return (
       <Container>
-        {this.renderBuildingEditor()}
-        {this.renderElevatorOverview()}
-      </Container>
-    )
-  }
+        <Header as='h1' size='large' textAlign='center' inverted>
+          <Icon name='sliders' rotated='clockwise' />
+          Elevator Simulator
+        </Header>
 
-  renderBuildingEditor() {
-
-    const { floors, elevatorCount } = this.state.controller
-    return (
-      <Segment textAlign='center'>
-        <Label key='floors'>
-          <Icon name='building' />
-            Number of Floors 
+        <Container textAlign='center' className='building-settings'>
+          <Label key='floors'>
+            <Icon name='building' />
+            Number of Floors
             <InputNumber
               value={floors}
               onChange={this.updateFloorCount}
               precision={0}
-              style={{ width: 65 }}
+              className='setting-input'
               min={1}
               max={14}
             />
-        </Label>
+          </Label>
 
-        <Label key='Elevators'>
-          <Icon name='subway' />
-            Number of Elevators 
+          <Label key='Elevators'>
+            <Icon name='subway' />
+            Number of Elevators
             <InputNumber
               value={elevatorCount}
               onChange={this.updateElevatorCount}
               precision={0}
-              style={{ width: 65 }}
+              className='setting-input'
               min={1}
               max={6}
             />
-        </Label>
-      </Segment>
-    )
-  }
-
-  renderElevatorOverview() {
-    const {controller} = this.state
-
-    return (
-      <Container>
-        <Header content='Elevator Overview' textAlign='center' />
-
-        <Grid columns={controller.floors + 1}>
-          {this.renderFloorLabels()}
-          {this.renderFloorUpButtons()}
-          {this.renderFloorDownButtons()}
-          {controller.elevatorList.map((e) => this.renderElevator(e))}
-        </Grid>
+          </Label>
+        </Container>
+        
+        <Container>
+          <Grid columns={floors + 1}>
+            {this.renderFloor('label')}
+            {this.renderFloor('up')}
+            {this.renderFloor('down')}
+            {elevatorList.map((e) => this.renderElevator(e))}
+          </Grid>
+        </Container>
       </Container>
     )
   }
 
-  renderFloorLabels() {
+  renderFloor(type) {
     const { floors } = this.state.controller
     const columns = []
-    for (let i = 1; i <= floors; i++)
-      columns.push(<Grid.Column textAlign='center' key={i}>
-        {`Level ${i}`}
+    for (let i = 0; i < floors; i++)
+      columns.push(
+      <Grid.Column textAlign='center' key={i}> 
+        {this.renderLabelOrButtonState(type, i)} 
       </Grid.Column>)
+
     return (
-      <Grid.Row key='labels'>
+      <Grid.Row key={type}>
         {EMPTY_COLUMN}
         {columns}
       </Grid.Row>
     )
   }
 
-  renderFloorUpButtons() {
-    const { floors } = this.state.controller
-    const columns = []
-    for (let i = 0; i < floors; i++)
-      columns.push(<Grid.Column textAlign='center' key={i}>
-        <Icon name='arrow up' />
-      </Grid.Column>)
-    return (
-      <Grid.Row key='up'>
-        {EMPTY_COLUMN}
-        {columns}
-      </Grid.Row>
-    )
-  }
-
-  renderFloorDownButtons() {
-    const { floors } = this.state.controller
-    const columns = []
-    for (let i = 0; i < floors; i++)
-      columns.push(<Grid.Column textAlign='center' key={i}>
-        <Icon name='arrow down' />
-      </Grid.Column>)
-    return (
-      <Grid.Row key='down'>
-        {EMPTY_COLUMN}
-        {columns}
-      </Grid.Row>
-    )
+  renderLabelOrButtonState(type, floor) {
+    switch (type) {
+      case 'label': return `Level ${floor+1}`
+      case 'up': return <Icon name='arrow up' />
+      case 'down': return <Icon name='arrow down' />
+      default: throw new Error('Invalid type')
+    }
   }
 
   renderElevator(elevator) {
