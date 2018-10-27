@@ -7,11 +7,12 @@ import {DIRECTIONS, ELEVATOR_REQUEST_STATES} from './utils.js'
  *
  */
 export default class Elevator {
-  constructor({ id, floors, floor = 0, direction = DIRECTIONS.NONE, request}) {
+  constructor({ id, floors, floor = 0, direction = DIRECTIONS.NONE, request, addressedFloor = 0}) {
     this.id = id
     this.direction = direction
     this.floors = floors  // Total number of floors in the building
     this.floor = floor
+    this.addressedFloor = addressedFloor
     this.request = request  // ElevatorRequest object if it exists
   }
 
@@ -22,6 +23,7 @@ export default class Elevator {
     return new Elevator({
       id: this.id,
       direction: this.direction,
+      addressedFloor: this.addressedFloor,
       floors: this.floors,
       floor: this.floor,
       request: this.request && this.request.clone(),
@@ -110,22 +112,32 @@ export default class Elevator {
    * @returns {undefined}
    */
   moveElevator(toFloor) {
-    if (!this.isValidFloor(toFloor) || this.floor === toFloor) throw new Error('Invalid floor')
+    if (!this.isFloorReachableNow(toFloor)) throw new Error('Cannot move now')
+    this.addressedFloor = toFloor
+    setDirection.call(this)
+  }
+
+  /**
+   * Check if Elevator can move to given floor at current state
+   *
+   * @param {int} toFloor where to go.
+   * @returns {boolean}
+   */
+  isFloorReachableNow(toFloor) {
+    if (!this.isValidFloor(toFloor) || this.floor === toFloor) return false
 
     const state = this.request && this.request.getState()
     if (state === ELEVATOR_REQUEST_STATES.ELEVATOR_ASSIGNED)
-      throw new Error('Cannot move now')
+      return false
 
     switch (this.direction) {
       case DIRECTIONS.UP:
-        if (this.addressedFloor < toFloor) this.addressedFloor = toFloor
-        break;
-      case DIRECTIONS.UP:
-        if (this.addressedFloor < toFloor) this.addressedFloor = toFloor
-        break;
+        if (this.addressedFloor >= toFloor) return false
+        return true
+      case DIRECTIONS.DOWN:
+        if (this.addressedFloor <= toFloor) return false
       default:
-        this.addressedFloor = toFloor
-        setDirection.call(this)
+        return true
     }
   }
 

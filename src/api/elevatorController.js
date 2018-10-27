@@ -2,7 +2,6 @@
 
 import Elevator from './Elevator.js'
 import ElevatorRequest from './ElevatorRequest.js'
-import { DIRECTIONS } from './utils.js'
 
 export default class ElevatorController {
   /**
@@ -11,15 +10,19 @@ export default class ElevatorController {
    * @param {int} buildingConfig.elevatorCount Number of elevators in the building
    * @param {int} buildingConfig.floors Number of levels in the building
    */
-  constructor({ elevatorCount, floors, requestQueue = [] }) {
+  constructor({ elevatorCount, floors, requestQueue = [], elevators }) {
     this.floors = floors
     this.elevatorCount = elevatorCount
     this.elevatorList = []
     this.requestQueue = requestQueue
-    // Create elevator objects and add it to list
-    for (let i = 0; i < this.elevatorCount; i++) {
-      const elevator = new Elevator({id: i, floors: this.floors})
-      this.elevatorList.push(elevator)
+    if (elevators) {
+      this.elevatorList = elevators
+    } else {
+      // Create elevator objects and add it to list
+      for (let i = 0; i < this.elevatorCount; i++) {
+        const elevator = new Elevator({ id: i, floors: this.floors })
+        this.elevatorList.push(elevator)
+      }
     }
     formRequestTree.call(this)
   }
@@ -29,7 +32,8 @@ export default class ElevatorController {
     const elevatorController = new ElevatorController({
       elevatorCount: this.elevatorCount,
       floors: this.floors,
-      requestQueue: this.requestQueue.map((e) => e.clone())
+      requestQueue: this.requestQueue.map((e) => e.clone()),
+      elevators: this.elevatorList.map((e) => e.clone()),
     })
     formRequestTree.call(elevatorController)
     return elevatorController

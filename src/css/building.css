@@ -10,3 +10,13 @@ html, body {
 .setting-input {
   width: 65px;
 }
+
+.mutrof-blink {
+  animation:4s mutrof-blinker linear infinite;
+}
+
+@keyframes mutrof-blinker {  
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}

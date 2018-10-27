@@ -7,6 +7,7 @@ export const DIRECTIONS = Object.freeze({
 });
 
 export const ELEVATOR_REQUEST_STATES = Object.freeze({
+  CAN_REQUEST_ELEVATOR: Symbol('Can Request Elevator'),
   WAITING_FOR_ELEVATOR: Symbol('Waiting for elevator'),
   ELEVATOR_ASSIGNED: Symbol('Elevator is assigned'),
   DOOR_OPEN: Symbol('Door is opening'),
