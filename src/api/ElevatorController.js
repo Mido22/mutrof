@@ -41,6 +41,7 @@ export default class ElevatorController {
 
   // Request for particular direction from floor
   requestElevator(floor, direction) {
+    if (!this.isValidFloor(floor)) throw new Error('Invalid Floor')
     if (this.requestTree[floor][direction])
       throw new Error('There is already a pending request')
 
@@ -49,8 +50,14 @@ export default class ElevatorController {
     formRequestTree.call(this)
   }
 
+  // Check if floor is valid
+  isValidFloor(floor) {
+    return floor >= 0 && floor < this.floors
+  }
+
   // Move elevator with given id to a floor
   moveElevator(elevatorId, toFloor) {
+    if (!this.isValidFloor(toFloor)) throw new Error('Invalid Floor')
     const elevator = this.elevatorList[elevatorId]
     if (!elevator) throw new Error('Elevator not found')
     elevator.moveElevator(toFloor)

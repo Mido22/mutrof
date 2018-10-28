@@ -7,7 +7,7 @@ import {
 } from 'semantic-ui-react'
 
 import '../css/building.css'
-import ElevatorController from './../api/elevatorController.js'
+import ElevatorController from './../api/ElevatorController.js'
 import { ELEVATOR_REQUEST_STATES, DIRECTIONS } from '../api/utils.js'
 
 const noop = () => { }
@@ -18,6 +18,7 @@ const EMPTY_COLUMN = (<Grid.Column key='empty'></Grid.Column>)
 
 export default class Building extends Component {
   state = {
+    interval: DEFAULT_INTERVAL,
     controller: new ElevatorController({
       floors: DEFAULT_FLOOR_COUNT,
       elevatorCount: DEFAULT_ELEVATOR_COUNT,
@@ -26,6 +27,7 @@ export default class Building extends Component {
 
   render() {
     const { floors, elevatorCount, elevatorList } = this.state.controller
+    const {interval} = this.state
 
     return (
       <Container>
@@ -58,6 +60,19 @@ export default class Building extends Component {
               className='setting-input'
               min={1}
               max={6}
+            />
+          </Label>
+
+          <Label key='interval'>
+            <Icon name='time' />
+            Interval
+            <InputNumber
+              value={interval}
+              onChange={this.updateInterval}
+              precision={0}
+              className='setting-input'
+              min={1}
+              max={42}
             />
           </Label>
         </Container>
@@ -239,5 +254,11 @@ export default class Building extends Component {
 
   componentWillUnmount() {
     clearInterval(this.interval)
+  }
+
+  updateInterval = (interval) => {
+    clearInterval(this.interval)
+    this.interval = setInterval(() => this.moveElevators(), interval * 1000)
+    this.setState({interval})
   }
 }

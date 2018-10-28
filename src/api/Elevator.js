@@ -79,16 +79,7 @@ export default class Elevator {
     this.request = request
     this.addressedFloor = request.getFloor()
     request.setState(ELEVATOR_REQUEST_STATES.ELEVATOR_ASSIGNED)
-    switch (1) {
-      case this.floor > request.getFloor():
-        this.direction = DIRECTIONS.DOWN
-        break
-      case this.floor < request.getFloor():
-        this.direction = DIRECTIONS.DOWN
-        break
-      default:
-        this.direction = DIRECTIONS.NONE
-    }
+    setDirection.call(this)
   }
 
   // return clone of ElevatorRequest object
@@ -102,7 +93,7 @@ export default class Elevator {
    * @returns {boolean} true if busy.
    */
   isBusy() {
-    return !!this.request || this.direction !== DIRECTIONS.NONE
+    return this.floor !== this.addressedFloor || (!!this.request)
   }
 
   /**
@@ -171,15 +162,6 @@ export default class Elevator {
    */
   getId() {
     return this.id
-  }
-
-  /**
-   * Check if the elevator is occupied at the moment.
-   *
-   * @returns {boolean} true if busy.
-   */
-  isBusy() {
-    return !!this.request
   }
 
   /**
